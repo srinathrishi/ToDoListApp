@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: myapp-ns
+  labels:
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/environment: nonprod
+    app.kubernetes.io/managed-by: kpe-team
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myapp-config
+  namespace: myapp-ns
+  labels:
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/environment: nonprod
+    app.kubernetes.io/tier: app
+    app.kubernetes.io/managed-by: kpe-team
+data:
+  APP_PORT: "8080"
+  APP_ENV: "nonprod"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: myapp-secrets
+  namespace: myapp-ns
+  labels:
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/environment: nonprod
+    app.kubernetes.io/tier: db
+    app.kubernetes.io/managed-by: kpe-team
+type: Opaque
+data:
+  DB_USERNAME: YWRtaW4=
+  DB_PASSWORD: MWYyZDFlMmU2N2Rm
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: myapp-data
+  namespace: myapp-ns
+  labels:
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/environment: nonprod
+    app.kubernetes.io/tier: db
+    app.kubernetes.io/managed-by: kpe-team
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deployment
+  namespace: myapp-ns
+  labels:
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/environment: nonprod
+    app.kubernetes.io/tier: app
+    app.kubernetes.io/managed-by: kpe-team
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+        app.kubernetes.io/name: myapp
+        app.kubernetes.io/environment: nonprod
+        app.kubernetes.io/tier: app
+        app.kubernetes.io/managed-by: kpe-team
+    spec:
+      containers:
+      - name: myapp-container
+        image: myapp:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: myapp-config
+        - secretRef:
+            name: myapp-secrets
+        volumeMounts:
+        - name: myapp-data
+          mountPath: /data
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp-service
+  namespace: myapp-ns
+  labels:
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/environment: nonprod
+    app.kubernetes.io/tier: app
+    app.kubernetes.io/managed-by: kpe-team
+spec:
+  type: ClusterIP
+  selector:
+    app: myapp
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
