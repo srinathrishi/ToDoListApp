@@ -11,5 +11,7 @@ app.kubernetes.io/partition - This label identifies a specific partition of the 
 These labels allow for easy identification and management of Kubernetes resources, helping to ensure consistency and reduce errors when deploying and managing complex applications.
 
 
+```<app-name>-<resource-type>-<environment>-<purpose>-<index>```
+
 
 
