@@ -29,7 +29,7 @@ spec:
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: K8sRequiredResources
 metadata:
-  name: my-k8srequiredresources-constraint
+  name: k8srequiredresources
 spec:
   match:
     kinds:
@@ -37,20 +37,8 @@ spec:
         kinds: ["Deployment", "StatefulSet", "Pod"]
   parameters:
     resources:
-      - cpu
-      - memory
-
-apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sRequiredResources
-metadata:
-  name: my-k8srequiredresources-constraint
-spec:
-  match:
-    kinds:
-      - apiGroups: [""]
-        kinds: ["Deployment", "StatefulSet", "Pod"]
-  parameters:
-    resources:
-      - cpu
-      - memory
+      - name: cpu
+        required: true
+      - name: memory
+        required: true
 
