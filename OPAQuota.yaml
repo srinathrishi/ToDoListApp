@@ -1,24 +1,66 @@
-apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sRequiredResources
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
 metadata:
   name: resource-limits
 spec:
-  match:
-    kinds:
-      - apiGroups: ["apps"]
-        kinds: ["Deployment", "StatefulSet"]
-      - apiGroups: [""]
-        kinds: ["Pod"]
-  parameters:
-    resources:
-      limits:
-      - name: cpu
-        required: true
-      - name: memory
-        required: true
-      requests:
-      - name: cpu
-        required: true
-      - name: memory
-        required: true
+  crd:
+    spec:
+      names:
+        kind: ResourceLimit
+      validation:
+        openAPIV3Schema:
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              properties:
+                container:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    limits:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                    resources:
+                      type: object
+                      properties:
+                        requests:
+                          type: object
+                          properties:
+                            cpu:
+                              type: string
+                            memory:
+                              type: string
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+        singular: ""
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredlabels
 
+        violation[{"msg": msg}] {
+            resource := input.review.object
+            containerNames := [cn.name | cn := resource.spec.containers[_]]
+            resource.spec.containers[_].resources.limits[_] == ""
+            msg := sprintf("Container %v in pod %v/%v does not have resource limits set", [containerNames[_], resource.metadata.namespace, resource.metadata.name])
+        }
+
+        violation[{"msg": msg}] {
+            resource := input.review.object
+            containerNames := [cn.name | cn := resource.spec.containers[_]]
+            resource.spec.containers[_].resources.requests[_] == ""
+            msg := sprintf("Container %v in pod %v/%v does not have resource requests set", [containerNames[_], resource.metadata.namespace, resource.metadata.name])
+        }
