@@ -24,3 +24,33 @@ spec:
       description: List of resources that must be requested
       type: array
       default: ["cpu", "memory"]
+
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredResources
+metadata:
+  name: my-k8srequiredresources-constraint
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Deployment", "StatefulSet", "Pod"]
+  parameters:
+    resources:
+      - cpu
+      - memory
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredResources
+metadata:
+  name: my-k8srequiredresources-constraint
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Deployment", "StatefulSet", "Pod"]
+  parameters:
+    resources:
+      - cpu
+      - memory
+
