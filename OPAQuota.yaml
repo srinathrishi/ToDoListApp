@@ -1,23 +1,35 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredresources
+  annotations:
+    description: "Enforce required resources requests and limits in pod spec"
+spec:
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredresources
+
+        violation[{"msg": msg}] {
+          containers := input.review.object.spec.containers
+          not hasLimitsAndRequests := not containers[_].resources.requests and not containers[_].resources.limits
+          msg := sprintf("Container '%v' in Pod '%v/%v' does not have resource requests and limits defined", [containers[_].name, input.review.object.metadata.namespace, input.review.object.metadata.name])
+        }
+---
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: K8sRequiredResources
 metadata:
-  name: resource-limits
+  name: k8srequiredresources
 spec:
   match:
     kinds:
-      - apiGroups: ["apps"]
-        kinds: ["Deployment", "StatefulSet"]
       - apiGroups: [""]
-        kinds: ["Pod"]
+        kinds: ["Pod", "Deployment", "StatefulSet"]
   parameters:
     resources:
-      limits:
-      - name: cpu
-        required: true
-      - name: memory
-        required: true
-      requests:
-      - name: cpu
-        required: true
-      - name: memory
-        required: true
+      - name: "cpu"
+        required: "50m"
+        limit: "100m"
+      - name: "memory"
+        required: "64Mi"
+        limit: "128Mi"
