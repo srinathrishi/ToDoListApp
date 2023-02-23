@@ -1,15 +1,16 @@
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sRequiredLabels
+kind: K8sRequiredLabel
 metadata:
-  name: require-app-label
+  name: require-testlabel
 spec:
   match:
     kinds:
-      - apiGroups: ["apps"]
-        kinds: ["Deployment"]
-    labelSelector:
-      matchLabels:
-        app: aslid
+      - apiGroups: [""]
+        kinds: ["*"]
+    namespaces:
+      - compute-namespace
   parameters:
-    message: "Deployments in namespace compute-namespace must have label 'app: aslid'"
-
+    labels:
+      - key: testlabel
+        values:
+          - ""
