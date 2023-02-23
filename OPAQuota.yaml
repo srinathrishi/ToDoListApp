@@ -31,3 +31,4 @@ spec:
           memReq == "" or not memReq.re.match("^[0-9]+(Mi|Gi)?$") or memLim == "" or not memLim.re.match("^[0-9]+(Mi|Gi)?$") ->
             msg := sprintf("CPU and memory resources must be defined for all containers in the Deployment")
         }
+
