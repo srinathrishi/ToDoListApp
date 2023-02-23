@@ -1,4 +1,4 @@
-apiVersion: templates.gatekeeper.sh/v1
+apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
   name: k8srequiredresources
@@ -7,38 +7,27 @@ spec:
     spec:
       names:
         kind: K8sRequiredResources
+      validation:
+        openAPIV3Schema:
+          properties:
+            cpu:
+              type: string
+              pattern: '^[0-9]+(m)?$'
+            memory:
+              type: string
+              pattern: '^[0-9]+(Mi|Gi)?$'
+          required: ['cpu', 'memory']
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
         package k8srequiredresources
-
-        violation[{"msg": msg, "details": {"missing_resource": missing}}] {
-          container := input.review.object.spec.template.spec.containers[_]
-          missing := {r | r := input.parameters.resources[_] ; not container.resources.requests[r]}
-          count(missing) > 0
-          msg := sprintf("Containers must define requests for the following resources: %v", [missing])
+        violation[{"msg": msg}] {
+          resource := input.review.object
+          cpuReq := resource.spec.containers[_].resources.requests.cpu
+          memReq := resource.spec.containers[_].resources.requests.memory
+          cpuLim := resource.spec.containers[_].resources.limits.cpu
+          memLim := resource.spec.containers[_].resources.limits.memory
+          cpuReq == "" or not cpuReq.re.match("^[0-9]+(m)?$") or cpuLim == "" or not cpuLim.re.match("^[0-9]+(m)?$") or
+          memReq == "" or not memReq.re.match("^[0-9]+(Mi|Gi)?$") or memLim == "" or not memLim.re.match("^[0-9]+(Mi|Gi)?$") ->
+            msg := sprintf("CPU and memory resources must be defined for all containers in the Deployment")
         }
-
-  parameters:
-    - name: resources
-      description: List of resources that must be requested
-      type: array
-      default: ["cpu", "memory"]
-
-
-apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sRequiredResources
-metadata:
-  name: k8srequiredresources
-spec:
-  match:
-    kinds:
-      - apiGroups: [""]
-        kinds: ["Deployment", "StatefulSet", "Pod"]
-  parameters:
-    resources:
-      - name: cpu
-        required: true
-      - name: memory
-        required: true
-
