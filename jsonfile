@@ -1,3 +1,4 @@
+---
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: K8sRequiredLabel
 metadata:
@@ -14,3 +15,20 @@ spec:
       - key: testlabel
         values:
           - ""
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredResources
+metadata:
+  name: require-resource-limits
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob"]
+    namespaces:
+      - compute-namespace
+  parameters:
+    cpuRequests: true
+    cpuLimits: true
+    memoryRequests: true
+    memoryLimits: true
