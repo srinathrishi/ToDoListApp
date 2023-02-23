@@ -1,23 +1,15 @@
-{
-  "apiVersion": "constraints.gatekeeper.sh/v1beta1",
-  "kind": "K8sRequiredLabels",
-  "metadata": {
-    "name": "require-aslid-label-on-deployments"
-  },
-  "spec": {
-    "match": {
-      "kinds": [
-        {
-          "apiGroups": ["apps"],
-          "kinds": ["Deployment"]
-        }
-      ],
-      "namespaces": ["compute-namespace"]
-    },
-    "parameters": {
-      "labels": {
-        "aslid": ".*"
-      }
-    }
-  }
-}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: require-app-label
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+    labelSelector:
+      matchLabels:
+        app: aslid
+  parameters:
+    message: "Deployments in namespace compute-namespace must have label 'app: aslid'"
+
