@@ -1,25 +1,23 @@
 {
+  "apiVersion": "constraints.gatekeeper.sh/v1beta1",
+  "kind": "K8sRequiredLabels",
+  "metadata": {
+    "name": "require-aslid-label-on-deployments"
+  },
   "spec": {
-    "parameters": {
-      "labels": {
-        "required": [
-          "app"
-        ],
-        "selector": "app"
-      }
-    },
     "match": {
       "kinds": [
         {
-          "apiGroups": [
-            "apps"
-          ],
-          "kinds": [
-            "Deployment",
-            "StatefulSet"
-          ]
+          "apiGroups": ["apps"],
+          "kinds": ["Deployment"]
         }
-      ]
+      ],
+      "namespaces": ["compute-namespace"]
+    },
+    "parameters": {
+      "labels": {
+        "aslid": ".*"
+      }
     }
   }
 }
