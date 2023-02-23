@@ -17,9 +17,9 @@ spec:
           - ""
 ---
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sRequiredResources
+kind: K8sContainerLimits
 metadata:
-  name: require-resource-limits
+  name: require-container-limits
 spec:
   match:
     kinds:
@@ -28,7 +28,5 @@ spec:
     namespaces:
       - compute-namespace
   parameters:
-    cpuRequests: true
-    cpuLimits: true
-    memoryRequests: true
-    memoryLimits: true
+    cpuLimit: "1"
+    memoryLimit: "1Gi"
