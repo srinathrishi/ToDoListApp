@@ -1,0 +1,25 @@
+{
+  "spec": {
+    "parameters": {
+      "labels": {
+        "required": [
+          "app"
+        ],
+        "selector": "app"
+      }
+    },
+    "match": {
+      "kinds": [
+        {
+          "apiGroups": [
+            "apps"
+          ],
+          "kinds": [
+            "Deployment",
+            "StatefulSet"
+          ]
+        }
+      ]
+    }
+  }
+}
