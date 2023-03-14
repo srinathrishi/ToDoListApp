@@ -44,3 +44,26 @@ spec:
       value: myteam
     - name: app_name
       value: myapp
+      
+---
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: namespace-name-convention
+spec:
+  crd:
+    spec:
+      names:
+        kind: NamespaceNameConvention
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package namespace_name_convention
+
+        violation[{"msg": msg}] {
+            # Ensure namespace has the expected label
+            namespace := input.review.object.metadata
+            not startswith(namespace.name, concat(namespace.labels["team"], "_", namespace.labels["app"], "_", namespace.labels["environment"]))
+            msg := sprintf("Namespace name must be in the format <Team_Name>_<App_Name>_<Environment>")
+        }
+
