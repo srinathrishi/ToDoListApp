@@ -1,0 +1,46 @@
+---
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: namespace-naming-convention
+  annotations:
+    description: "Enforces the naming convention for Kubernetes namespaces."
+spec:
+  crd:
+    spec:
+      names:
+        kind: NamespaceNamingConvention
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8snamespace.naming
+
+        violation[{"msg": msg}] {
+            provided := input.request.object.metadata.name
+            match := input.request.object.metadata.name =~ "^([a-z0-9]+)_([a-z0-9]+)_(dev|test|prod)$"
+            not match
+            msg := sprintf("Namespace name '%v' does not match naming convention '<Team_Name>_<App_Name>_<Environment>'.", [provided])
+        }
+
+        # Exclude system namespaces
+        exclude_system_namespaces[namespace] {
+            namespace := input.request.object.metadata.name
+            namespace == "kube-system" or
+            namespace == "kube-public" or
+            namespace == "kube-node-lease"
+        }
+---
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: Constraint
+metadata:
+  name: namespace-naming-convention
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Namespace"]
+  parameters:
+    - name: team_name
+      value: myteam
+    - name: app_name
+      value: myapp
