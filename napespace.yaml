@@ -1,29 +1,44 @@
 apiVersion: templates.gatekeeper.sh/v1
 kind: ConstraintTemplate
 metadata:
-  name: app-naming-convention
+  name: k8snamespacepattern
+  annotations:
+    metadata.gatekeeper.sh/title: "Namespace Naming Convention"
+    metadata.gatekeeper.sh/version: 1.0.0
+    description: >-
+      Enforces the naming convention for Kubernetes namespaces as <Team_Name>_<App_Name>_<Environment>.
 spec:
   crd:
     spec:
       names:
-        kind: AppNamingConvention
+        kind: K8sNamespacePattern
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            message:
+              type: string
+            pattern:
+              type: string
+              description: >-
+                The regular expression pattern to match the namespace name against.
+              pattern: "^([a-zA-Z0-9]+)_([a-zA-Z0-9]+)_([a-zA-Z0-9]+)$"
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package app_naming_convention
+        package k8snamespacepattern
+
+        get_message(parameters, _default) = msg {
+          not parameters.message
+          msg := _default
+        }
+
+        get_message(parameters, _default) = msg {
+          msg := parameters.message
+        }
 
         violation[{"msg": msg}] {
-          resource := input.review.object
-          kind := resource.kind
-          metadata := resource.metadata
-          name := metadata.name
-          team := split("_", name)[0]
-          app := split("_", name)[1]
-          env := split("_", name)[2]
-          pattern := sprintf("^%s_%s_(dev|stg|prd)$", [team, app])
-          not matched := not re_match(pattern, env)
-          msg := sprintf("Invalid app naming convention: '%s'. Must be in the format '<Team_Name>_<App_Name>_(dev|stg|prd)'.", [name])
-          not resource.kind == "Namespace"
-          not metadata.namespace == "kube-system"
-          not matched
+          not re_match(input.parameters.pattern, input.review.object.metadata.name)
+          def_msg := sprintf("Namespace name <%v> does not match required pattern <%v>", [input.review.object.metadata.name, input.parameters.pattern])
+          msg := get_message(input.parameters, def_msg)
         }
