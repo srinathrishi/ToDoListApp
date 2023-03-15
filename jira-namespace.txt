@@ -1,0 +1,11 @@
+Kubernetes namespaces should follow a specific naming convention. The convention should be as follows:
+
+<Team_Name><App_Name><Environment>
+
+This naming convention helps in standardizing the naming structure of Kubernetes namespaces and makes it easy to identify which team owns which applications and in which environment they are running.
+
+To enforce this naming convention, an OPA Gatekeeper policy has been created that will prevent any Kubernetes namespace that does not follow the specified naming convention from being created. Therefore, it is important that all teams creating namespaces in the Kubernetes cluster should follow this naming convention.
+
+In case any team needs to create a Kubernetes namespace that deviates from this naming convention, they must raise a request in the organization's Jira system with proper justification and approval from the concerned authority.
+
+Please make sure that you follow this naming convention while creating Kubernetes namespaces. If you have any questions or need any help, please reach out to the Kubernetes admin team.
